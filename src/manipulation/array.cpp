@@ -92,6 +92,11 @@ int Manipulation::getArrayData(AMX *amx, cell *params)
 			result = getArrayDataForItem(core->getData()->actors, amx, static_cast<int>(params[2]), static_cast<int>(params[3]), params[4], params[5], error);
 			break;
 		}
+		case STREAMER_TYPE_VEHICLE:
+		{
+			result = getArrayDataForItem(core->getData()->vehicles, amx, static_cast<int>(params[2]), static_cast<int>(params[3]), params[4], params[5], error);
+			break;
+		}
 	}
 	switch (error)
 	{
@@ -173,6 +178,11 @@ int Manipulation::setArrayData(AMX *amx, cell *params)
 		case STREAMER_TYPE_ACTOR:
 		{
 			result = setArrayDataForItem(core->getData()->actors, amx, static_cast<int>(params[2]), static_cast<int>(params[3]), params[4], params[5], error);
+			break;
+		}
+		case STREAMER_TYPE_VEHICLE:
+		{
+			result = setArrayDataForItem(core->getData()->vehicles, amx, static_cast<int>(params[2]), static_cast<int>(params[3]), params[4], params[5], error);
 			break;
 		}
 		default:
@@ -263,6 +273,11 @@ int Manipulation::isInArrayData(AMX *amx, cell *params)
 			result = isInArrayDataForItem(core->getData()->actors, static_cast<int>(params[2]), static_cast<int>(params[3]), static_cast<int>(params[4]), error);
 			break;
 		}
+		case STREAMER_TYPE_VEHICLE:
+		{
+			result = isInArrayDataForItem(core->getData()->vehicles, static_cast<int>(params[2]), static_cast<int>(params[3]), static_cast<int>(params[4]), error);
+			break;
+		}
 		default:
 		{
 			error = InvalidType;
@@ -351,6 +366,11 @@ int Manipulation::appendArrayData(AMX *amx, cell *params)
 			result = appendArrayDataForItem(core->getData()->actors, static_cast<int>(params[2]), static_cast<int>(params[3]), static_cast<int>(params[4]), error);
 			break;
 		}
+		case STREAMER_TYPE_VEHICLE:
+		{
+			result = appendArrayDataForItem(core->getData()->vehicles, static_cast<int>(params[2]), static_cast<int>(params[3]), static_cast<int>(params[4]), error);
+			break;
+		}
 		default:
 		{
 			error = InvalidType;
@@ -437,6 +457,11 @@ int Manipulation::removeArrayData(AMX *amx, cell *params)
 		case STREAMER_TYPE_ACTOR:
 		{
 			result = removeArrayDataForItem(core->getData()->actors, static_cast<int>(params[2]), static_cast<int>(params[3]), static_cast<int>(params[4]), error);
+			break;
+		}
+		case STREAMER_TYPE_VEHICLE:
+		{
+			result = removeArrayDataForItem(core->getData()->vehicles, static_cast<int>(params[2]), static_cast<int>(params[3]), static_cast<int>(params[4]), error);
 			break;
 		}
 		default:

@@ -31,6 +31,7 @@ Player::Player(int id)
 	activeRaceCheckpoint = 0;
 	checkedPickups = false;
 	checkedActors = false;
+	checkedVehicles = false;
 	chunkTickCount[STREAMER_TYPE_OBJECT] = 0;
 	chunkTickCount[STREAMER_TYPE_MAP_ICON] = 0;
 	chunkTickCount[STREAMER_TYPE_3D_TEXT_LABEL] = 0;
@@ -58,6 +59,7 @@ Player::Player(int id)
 	radiusMultipliers[STREAMER_TYPE_3D_TEXT_LABEL] = core->getData()->getGlobalRadiusMultiplier(STREAMER_TYPE_3D_TEXT_LABEL);
 	radiusMultipliers[STREAMER_TYPE_AREA] = core->getData()->getGlobalRadiusMultiplier(STREAMER_TYPE_AREA);
 	radiusMultipliers[STREAMER_TYPE_ACTOR] = core->getData()->getGlobalRadiusMultiplier(STREAMER_TYPE_ACTOR);
+	radiusMultipliers[STREAMER_TYPE_VEHICLE] = core->getData()->getGlobalRadiusMultiplier(STREAMER_TYPE_VEHICLE);
 	requestingClass = false;
 	tickCount = 0;
 	tickRate = 50;

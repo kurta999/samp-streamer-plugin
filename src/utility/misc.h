@@ -35,6 +35,7 @@ namespace Utility
 	boost::unordered_map<int, Item::SharedPickup>::iterator destroyPickup(boost::unordered_map<int, Item::SharedPickup>::iterator p);
 	boost::unordered_map<int, Item::SharedRaceCheckpoint>::iterator destroyRaceCheckpoint(boost::unordered_map<int, Item::SharedRaceCheckpoint>::iterator r);
 	boost::unordered_map<int, Item::SharedTextLabel>::iterator destroyTextLabel(boost::unordered_map<int, Item::SharedTextLabel>::iterator t);
+	boost::unordered_map<int, Item::SharedVehicle>::iterator destroyVehicle(boost::unordered_map<int, Item::SharedVehicle>::iterator v);
 
 	std::size_t getChunkTickRate(int type, int playerid);
 	bool setChunkTickRate(int type, std::size_t value, int playerid);
@@ -47,6 +48,7 @@ namespace Utility
 
 	bool haveAllPlayersCheckedActors();
 	bool haveAllPlayersCheckedPickups();
+	bool haveAllPlayersCheckedVehicles();
 
 	void processPendingDestroyedActors();
 

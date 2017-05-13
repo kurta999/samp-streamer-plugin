@@ -176,6 +176,24 @@ cell AMX_NATIVE_CALL Natives::Streamer_GetDistanceToItem(AMX *amx, cell *params)
 			}
 			return 0;
 		}
+		case STREAMER_TYPE_VEHICLE:
+		{
+			boost::unordered_map<int, Item::SharedVehicle>::iterator v = core->getData()->vehicles.find(static_cast<int>(params[5]));
+			if (v != core->getData()->vehicles.end())
+			{
+				boost::unordered_map<int, int>::iterator i = core->getData()->internalVehicles.find(v->first);
+				if (i != core->getData()->internalVehicles.end())
+				{
+					sampgdk::GetVehiclePos(i->second, &position[0], &position[1], &position[2]);
+				}
+				else
+				{
+					position = v->second->position;
+				}
+				break;
+			}
+			return 0;
+		}
 		default:
 		{
 			Utility::logError("Streamer_GetDistanceToItem: Invalid type specified.");
@@ -338,6 +356,33 @@ cell AMX_NATIVE_CALL Natives::Streamer_ToggleItem(AMX *amx, cell *params)
 			}
 			break;
 		}
+		/*
+		case STREAMER_TYPE_VEHICLE:
+		{
+			boost::unordered_map<int, Item::SharedVehicle>::iterator v = core->getData()->vehicles.find(static_cast<int>(params[2]));
+			if (v != core->getData()->vehicles.end())
+			{
+				if (static_cast<int>(params[3]))
+				{
+					if (v->second->streamDistance > STREAMER_STATIC_DISTANCE_CUTOFF && v->second->originalStreamDistance < STREAMER_STATIC_DISTANCE_CUTOFF)
+					{
+						v->second->originalStreamDistance = v->second->streamDistance;
+						v->second->streamDistance = -1.0f;
+					}
+				}
+				else
+				{
+					if (v->second->streamDistance < STREAMER_STATIC_DISTANCE_CUTOFF && v->second->originalStreamDistance > STREAMER_STATIC_DISTANCE_CUTOFF)
+					{
+						v->second->streamDistance = v->second->originalStreamDistance;
+						v->second->originalStreamDistance = -1.0f;
+					}
+				}
+				return 1;
+			}
+			break;
+		}
+		*/
 		default:
 		{
 			Utility::logError("Streamer_ToggleItem: Invalid type specified.");
@@ -424,6 +469,20 @@ cell AMX_NATIVE_CALL Natives::Streamer_IsToggleItem(AMX *amx, cell *params)
 			}
 			break;
 		}
+		/*
+		case STREAMER_TYPE_VEHICLE:
+		{
+		boost::unordered_map<int, Item::SharedVehicle>::iterator v = core->getData()->vehicles.find(static_cast<int>(params[2]));
+		if (v != core->getData()->vehicles.end())
+		{
+		if (v->second->streamDistance < STREAMER_STATIC_DISTANCE_CUTOFF && v->second->originalStreamDistance > STREAMER_STATIC_DISTANCE_CUTOFF)
+		{
+		return 1;
+		}
+		}
+		return 0;
+		}
+		*/
 		default:
 		{
 			Utility::logError("Streamer_IsToggleItem: Invalid type specified.");
@@ -592,6 +651,25 @@ cell AMX_NATIVE_CALL Natives::Streamer_ToggleAllItems(AMX *amx, cell *params)
 			}
 			return 1;
 		}
+		case STREAMER_TYPE_VEHICLE:
+		{
+			for (boost::unordered_map<int, Item::SharedVehicle>::iterator v = core->getData()->vehicles.begin(); v != core->getData()->vehicles.end(); ++v)
+			{
+				boost::unordered_set<int>::iterator e = exceptions.find(v->first);
+				if (e == exceptions.end())
+				{
+					if (!static_cast<int>(params[3]))
+					{
+						Utility::removeFromContainer(v->second->players, static_cast<int>(params[1]));
+					}
+					else
+					{
+						Utility::addToContainer(v->second->players, static_cast<int>(params[1]));
+					}
+				}
+			}
+			return 1;
+		}
 		default:
 		{
 			Utility::logError("Streamer_ToggleAllItems: Invalid type specified.");
@@ -621,6 +699,17 @@ cell AMX_NATIVE_CALL Natives::Streamer_GetItemInternalID(AMX *amx, cell *params)
 			if (i != core->getData()->internalActors.end())
 			{
 				return static_cast<cell>(i->second);
+			}
+			return 0;
+		}
+		case STREAMER_TYPE_VEHICLE:
+		{
+			for (boost::unordered_map<int, int>::iterator i = core->getData()->internalVehicles.begin(); i != core->getData()->internalVehicles.end(); ++i)
+			{
+				if (i->second == static_cast<int>(params[3]))
+				{
+					return i->first;
+				}
 			}
 			return 0;
 		}
@@ -710,6 +799,17 @@ cell AMX_NATIVE_CALL Natives::Streamer_GetItemStreamerID(AMX *amx, cell *params)
 		case STREAMER_TYPE_ACTOR:
 		{
 			for (boost::unordered_map<int, int>::iterator i = core->getData()->internalActors.begin(); i != core->getData()->internalActors.end(); ++i)
+			{
+				if (i->second == static_cast<int>(params[3]))
+				{
+					return i->first;
+				}
+			}
+			return 0;
+		}
+		case STREAMER_TYPE_VEHICLE:
+		{
+			for (boost::unordered_map<int, int>::iterator i = core->getData()->internalVehicles.begin(); i != core->getData()->internalVehicles.end(); ++i)
 			{
 				if (i->second == static_cast<int>(params[3]))
 				{
@@ -810,6 +910,15 @@ cell AMX_NATIVE_CALL Natives::Streamer_IsItemVisible(AMX *amx, cell *params)
 		{
 			boost::unordered_map<int, int>::iterator i = core->getData()->internalActors.find(static_cast<int>(params[3]));
 			if (i != core->getData()->internalActors.end())
+			{
+				return 1;
+			}
+			return 0;
+		}
+		case STREAMER_TYPE_VEHICLE:
+		{
+			boost::unordered_map<int, int>::iterator i = core->getData()->internalVehicles.find(static_cast<int>(params[3]));
+			if (i != core->getData()->internalVehicles.end())
 			{
 				return 1;
 			}
@@ -920,6 +1029,24 @@ cell AMX_NATIVE_CALL Natives::Streamer_DestroyAllVisibleItems(AMX *amx, cell *pa
 				else
 				{
 					++i;
+				}
+			}
+			return 1;
+		}
+		case STREAMER_TYPE_VEHICLE:
+		{
+			boost::unordered_map<int, int>::iterator p = core->getData()->internalVehicles.begin();
+			while (p != core->getData()->internalPickups.end())
+			{
+				boost::unordered_map<int, Item::SharedVehicle>::iterator q = core->getData()->vehicles.find(p->first);
+				if (serverWide || (q != core->getData()->vehicles.end() && q->second->amx == amx))
+				{
+					sampgdk::DestroyVehicle(p->second);
+					p = core->getData()->internalVehicles.erase(p);
+				}
+				else
+				{
+					++p;
 				}
 			}
 			return 1;
@@ -1054,6 +1181,10 @@ cell AMX_NATIVE_CALL Natives::Streamer_CountVisibleItems(AMX *amx, cell *params)
 		case STREAMER_TYPE_ACTOR:
 		{
 			return static_cast<cell>(core->getData()->internalActors.size());
+		}
+		case STREAMER_TYPE_VEHICLE:
+		{
+			return static_cast<cell>(core->getData()->internalVehicles.size());
 		}
 	}
 	boost::unordered_map<int, Player>::iterator p = core->getData()->players.find(static_cast<int>(params[1]));
@@ -1310,6 +1441,22 @@ cell AMX_NATIVE_CALL Natives::Streamer_DestroyAllItems(AMX *amx, cell *params)
 			}
 			return 1;
 		}
+		case STREAMER_TYPE_VEHICLE:
+		{
+			boost::unordered_map<int, Item::SharedVehicle>::iterator v = core->getData()->vehicles.begin();
+			while (v != core->getData()->vehicles.end())
+			{
+				if (serverWide || v->second->amx == amx)
+				{
+					v = Utility::destroyVehicle(v);
+				}
+				else
+				{
+					++v;
+				}
+			}
+			return 1;
+		}
 		default:
 		{
 			Utility::logError("Streamer_DestroyAllItems: Invalid type specified.");
@@ -1470,6 +1617,25 @@ cell AMX_NATIVE_CALL Natives::Streamer_CountItems(AMX *amx, cell *params)
 				for (boost::unordered_map<int, Item::SharedActor>::iterator a = core->getData()->actors.begin(); a != core->getData()->actors.end(); ++a)
 				{
 					if (a->second->amx == amx)
+					{
+						++count;
+					}
+				}
+				return static_cast<cell>(count);
+			}
+		}
+		case STREAMER_TYPE_VEHICLE:
+		{
+			if (serverWide)
+			{
+				return static_cast<cell>(core->getData()->vehicles.size());
+			}
+			else
+			{
+				int count = 0;
+				for (boost::unordered_map<int, Item::SharedVehicle>::iterator v = core->getData()->vehicles.begin(); v != core->getData()->vehicles.end(); ++v)
+				{
+					if (v->second->amx == amx)
 					{
 						++count;
 					}
@@ -1671,6 +1837,21 @@ cell AMX_NATIVE_CALL Natives::Streamer_GetNearbyItems(AMX *amx, cell *params)
 			Utility::logError("Streamer_GetNearbyItems: Invalid type specified.");
 			return 0;
 		}
+		case STREAMER_TYPE_VEHICLE:
+		{
+			for (std::vector<SharedCell>::const_iterator p = pointCells.begin(); p != pointCells.end(); ++p)
+			{
+				for (boost::unordered_map<int, Item::SharedVehicle>::const_iterator v = (*p)->vehicles.begin(); v != (*p)->vehicles.end(); ++v)
+				{
+					float distance = static_cast<float>(boost::geometry::comparable_distance(position3D, v->second->position));
+					if (distance < range)
+					{
+						orderedItems.insert(std::pair<float, int>(distance, v->first));
+					}
+				}
+			}
+			break;
+		}
 	}
 	std::vector<int> finalItems;
 	for (std::multimap<float, int>::iterator i = orderedItems.begin(); i != orderedItems.end(); ++i)
@@ -1771,6 +1952,19 @@ cell AMX_NATIVE_CALL Natives::Streamer_GetAllVisibleItems(AMX *amx, cell *params
 				}
 				break;
 			}
+			case STREAMER_TYPE_VEHICLE:
+			{
+				for (boost::unordered_map<int, int>::iterator i = core->getData()->internalVehicles.begin(); i != core->getData()->internalVehicles.end(); ++i)
+				{
+					boost::unordered_map<int, Item::SharedVehicle>::iterator v = core->getData()->vehicles.find(i->first);
+					if (v != core->getData()->vehicles.end())
+					{
+						float distance = static_cast<float>(boost::geometry::comparable_distance(p->second.position, v->second->position));
+						orderedItems.insert(std::pair<float, int>(distance, v->first));
+					}
+				}
+				break;
+			}
 		}
 	}
 	std::vector<int> finalItems;
@@ -1858,6 +2052,16 @@ cell AMX_NATIVE_CALL Natives::Streamer_GetItemOffset(AMX *amx, cell *params)
 			}
 			return 0;
 		}
+		case STREAMER_TYPE_VEHICLE:
+		{
+			boost::unordered_map<int, Item::SharedVehicle>::iterator v = core->getData()->vehicles.find(static_cast<int>(params[2]));
+			if (v != core->getData()->vehicles.end())
+			{
+				positionOffset = v->second->positionOffset;
+				break;
+			}
+			return 0;
+		}
 		default:
 		{
 			Utility::logError("Streamer_GetItemPosOffset: Invalid type specified.");
@@ -1941,6 +2145,16 @@ cell AMX_NATIVE_CALL Natives::Streamer_SetItemOffset(AMX *amx, cell *params)
 			if (a != core->getData()->actors.end())
 			{
 				a->second->positionOffset = Eigen::Vector3f(amx_ctof(params[3]), amx_ctof(params[4]), amx_ctof(params[5]));
+				return 1;
+			}
+			break;
+		}
+		case STREAMER_TYPE_VEHICLE:
+		{
+			boost::unordered_map<int, Item::SharedVehicle>::iterator v = core->getData()->vehicles.find(static_cast<int>(params[2]));
+			if (v != core->getData()->vehicles.end())
+			{
+				v->second->positionOffset = Eigen::Vector3f(amx_ctof(params[3]), amx_ctof(params[4]), amx_ctof(params[5]));
 				return 1;
 			}
 			break;

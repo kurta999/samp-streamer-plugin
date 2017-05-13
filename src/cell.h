@@ -40,6 +40,7 @@ public:
 	boost::unordered_map<int, Item::SharedRaceCheckpoint> raceCheckpoints;
 	boost::unordered_map<int, Item::SharedTextLabel> textLabels;
 	boost::unordered_map<int, Item::SharedActor> actors;
+	boost::unordered_map<int, Item::SharedVehicle> vehicles;
 };
 
 #endif

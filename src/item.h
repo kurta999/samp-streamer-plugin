@@ -114,6 +114,7 @@ namespace Item
 			Eigen::Vector3f positionOffset;
 			int references;
 			int vehicle;
+			int vehicleType;
 
 			EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 		};
@@ -224,6 +225,7 @@ namespace Item
 			Eigen::Vector3f rotation;
 			bool syncRotation;
 			int vehicle;
+			int vehicleType;
 
 			EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 		};
@@ -383,9 +385,81 @@ namespace Item
 			Eigen::Vector3f position;
 			int references;
 			int vehicle;
+			int vehicleType;
 		};
 
 		boost::intrusive_ptr<Attach> attach;
+
+		boost::unordered_set<int> areas;
+		std::vector<int> extras;
+		boost::unordered_set<int> interiors;
+		std::bitset<MAX_PLAYERS> players;
+		boost::unordered_set<int> worlds;
+
+		static Identifier identifier;
+
+		EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+	};
+
+	struct Vehicle
+	{
+		Vehicle();
+
+		AMX *amx;
+		SharedCell cell;
+		float comparableStreamDistance;
+		bool inverseAreaChecking;
+		float originalComparableStreamDistance;
+		int modelID;
+		Eigen::Vector3f position;
+		Eigen::Vector3f positionOffset;
+		//float qw, qx, qy, qz;
+		Eigen::Vector4f quat;
+		float angle;
+		boost::array<int, 2> color;
+		int respawnDelay;
+		int paintjob;
+		int interior;
+		int worldID;
+		float health;
+		std::vector<int> carmods;
+		std::string numberplate;
+		int panels;
+		int doors;
+		int lights;
+		int tires;
+
+		struct Spawn
+		{
+			Eigen::Vector3f position;
+			float angle;
+			boost::array<int, 2> color;
+			bool addsiren;
+		} spawn;
+
+		struct Params
+		{
+			char engine, lights, alarm, doors, bonnet, boot, objective;
+			char siren;
+			struct Doors
+			{
+				char driver, passenger, backleft, backright;
+			} cardoors;
+			struct Windows
+			{
+				char driver, passenger, backleft, backright;
+			} carwindows;
+		} params;
+
+		int references;
+		int priority;
+		bool streamCallbacks;
+		float streamDistance;
+		int vehicleID;
+		bool touched;
+		bool used;
+		boost::chrono::steady_clock::time_point spawnedTime;
+		boost::chrono::steady_clock::time_point lastUpdatedTime;
 
 		boost::unordered_set<int> areas;
 		std::vector<int> extras;

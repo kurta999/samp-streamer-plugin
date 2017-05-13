@@ -217,6 +217,25 @@ void Grid::addTextLabel(const Item::SharedTextLabel &textLabel)
 	}
 }
 
+void Grid::addVehicle(const Item::SharedVehicle &vehicle)
+{
+	if (vehicle->comparableStreamDistance > cellDistance || vehicle->comparableStreamDistance < STREAMER_STATIC_DISTANCE_CUTOFF)
+	{
+		globalCell->vehicles.insert(std::make_pair(vehicle->vehicleID, vehicle));
+		vehicle->cell.reset();
+
+		//sampgdk_logprintf("STREAMERDEBUG: addVehicle to global cell %d", vehicle->vehicleID);
+	}
+	else
+	{
+		////sampgdk_logprintf("STREAMERDEBUG: Grid::addVehicle %d", vehicle->vehicleID);
+
+		CellID cellID = getCellID(Eigen::Vector2f(vehicle->position[0], vehicle->position[1]));
+		cells[cellID]->vehicles.insert(std::make_pair(vehicle->vehicleID, vehicle));
+		vehicle->cell = cells[cellID];
+	}
+}
+
 void Grid::rebuildGrid()
 {
 	cells.clear();
@@ -253,6 +272,10 @@ void Grid::rebuildGrid()
 	for (boost::unordered_map<int, Item::SharedTextLabel>::iterator t = core->getData()->textLabels.begin(); t != core->getData()->textLabels.end(); ++t)
 	{
 		addTextLabel(t->second);
+	}
+	for (boost::unordered_map<int, Item::SharedVehicle>::iterator v = core->getData()->vehicles.begin(); v != core->getData()->vehicles.end(); ++v)
+	{
+		addVehicle(v->second);
 	}
 }
 
@@ -561,6 +584,45 @@ void Grid::removeTextLabel(const Item::SharedTextLabel &textLabel, bool reassign
 	}
 }
 
+void Grid::removeVehicle(const Item::SharedVehicle &vehicle, bool reassign)
+{
+	bool found = false;
+	if (vehicle->cell)
+	{
+		boost::unordered_map<CellID, SharedCell>::iterator c = cells.find(vehicle->cell->cellID);
+		if (c != cells.end())
+		{
+			boost::unordered_map<int, Item::SharedVehicle>::iterator p = c->second->vehicles.find(vehicle->vehicleID);
+			if (p != c->second->vehicles.end())
+			{
+				c->second->vehicles.quick_erase(p);
+				eraseCellIfEmpty(c->second);
+				found = true;
+			}
+		}
+	}
+	else
+	{
+		boost::unordered_map<int, Item::SharedVehicle>::iterator p = globalCell->vehicles.find(vehicle->vehicleID);
+		if (p != globalCell->vehicles.end())
+		{
+			globalCell->vehicles.quick_erase(p);
+			found = true;
+		}
+	}
+	if (found)
+	{
+		if (reassign)
+		{
+			addVehicle(vehicle);
+		}
+		else
+		{
+			core->getStreamer()->movingVehicles.erase(vehicle);
+		}
+	}
+}
+
 CellID Grid::getCellID(const Eigen::Vector2f &position, bool insert)
 {
 	static Box2D box;
@@ -729,6 +791,32 @@ void Grid::processDiscoveredCellsForPlayer(Player &player, std::vector<SharedCel
 		}
 		playerCells.back()->areas.swap(player.visibleCell->areas);
 	}
+/*
+	if (player.enabledItems[STREAMER_TYPE_VEHICLE])
+	{
+		boost::unordered_map<int, Item::SharedVehicle>::iterator a = player.visibleCell->vehicles.begin();
+		while (a != player.visibleCell->vehicles.end())
+		{
+			if (a->second->cell)
+			{
+				boost::unordered_set<CellID>::iterator d = discoveredCells.find(a->second->cell->cellID);
+				if (d != discoveredCells.end())
+				{
+					a = player.visibleCell->vehicles.erase(a);
+				}
+				else
+				{
+					++a;
+				}
+			}
+			else
+			{
+				a = player.visibleCell->vehicles.erase(a);
+			}
+		}
+		playerCells.back()->vehicles.swap(player.visibleCell->vehicles);
+	}
+*/
 }
 
 void Grid::findAllCellsForPlayer(Player &player, std::vector<SharedCell> &playerCells)

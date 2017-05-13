@@ -197,6 +197,18 @@ void Utility::destroyAllItemsInInterface(AMX *amx)
 			++b;
 		}
 	}
+	boost::unordered_map<int, Item::SharedVehicle>::iterator v = core->getData()->vehicles.begin();
+	while (v != core->getData()->vehicles.end())
+	{
+		if (v->second->amx == amx)
+		{
+			v = destroyVehicle(v);
+		}
+		else
+		{
+			++v;
+		}
+	}
 }
 
 void Utility::executeFinalAreaCallbacks(int areaid)

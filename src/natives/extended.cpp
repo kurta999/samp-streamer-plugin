@@ -414,3 +414,82 @@ cell AMX_NATIVE_CALL Natives::CreateDynamicActorEx(AMX *amx, cell *params)
 	core->getData()->actors.insert(std::make_pair(actorID, actor));
 	return static_cast<cell>(actorID);
 }
+
+cell AMX_NATIVE_CALL Natives::CreateDynamicVehicleEx(AMX *amx, cell *params)
+{
+	CHECK_PARAMS(44, "CreateDynamicVehicleEx");
+	if (core->getData()->getGlobalMaxItems(STREAMER_TYPE_VEHICLE) == core->getData()->vehicles.size())
+	{
+		return 0;
+	}
+	int vehicleID = Item::Vehicle::identifier.get();
+	Item::SharedVehicle vehicle(new Item::Vehicle);
+	vehicle->amx = amx;
+	vehicle->vehicleID = vehicleID;
+	vehicle->inverseAreaChecking = false;
+	vehicle->originalComparableStreamDistance = -1.0f;
+	vehicle->positionOffset = Eigen::Vector3f::Zero();
+	vehicle->streamCallbacks = false;
+	vehicle->modelID = static_cast<int>(params[1]);
+	vehicle->spawn.position = Eigen::Vector3f(amx_ctof(params[2]), amx_ctof(params[3]), amx_ctof(params[4]));
+	vehicle->spawn.angle = amx_ctof(params[5]);
+	vehicle->spawn.color[0] = static_cast<int>(params[6]);
+	vehicle->spawn.color[1] = static_cast<int>(params[7]);
+	vehicle->respawnDelay = static_cast<int>(params[8]) != -1 ? static_cast<int>(params[8]) * 1000 : -1;
+	vehicle->spawn.addsiren = static_cast<int>(params[9]) != 0;
+	vehicle->paintjob = static_cast<int>(params[10]);
+	vehicle->health = amx_ctof(params[11]);
+	vehicle->panels = static_cast<int>(params[12]);
+	vehicle->doors = static_cast<int>(params[13]);
+	vehicle->lights = static_cast<int>(params[14]);
+	vehicle->tires = static_cast<int>(params[15]);
+	vehicle->params.engine = static_cast<char>(params[16]);
+	vehicle->params.lights = static_cast<char>(params[17]);
+	vehicle->params.alarm = static_cast<char>(params[18]);
+	vehicle->params.doors = static_cast<char>(params[19]);
+	vehicle->params.bonnet = static_cast<char>(params[20]);
+	vehicle->params.boot = static_cast<char>(params[21]);
+	vehicle->params.objective = static_cast<char>(params[22]);
+	vehicle->params.cardoors.driver = static_cast<char>(params[23]);
+	vehicle->params.cardoors.passenger = static_cast<char>(params[24]);
+	vehicle->params.cardoors.backleft = static_cast<char>(params[25]);
+	vehicle->params.cardoors.backright = static_cast<char>(params[26]);
+	vehicle->params.carwindows.driver = static_cast<char>(params[27]);
+	vehicle->params.carwindows.passenger = static_cast<char>(params[28]);
+	vehicle->params.carwindows.backleft = static_cast<char>(params[29]);
+	vehicle->params.carwindows.backright = static_cast<char>(params[30]);
+	vehicle->params.siren = static_cast<char>(params[31]);
+	vehicle->numberplate = Utility::convertNativeStringToString(amx, params[32]);
+	Utility::convertArrayToContainer(amx, params[33], params[40], vehicle->carmods);
+	vehicle->comparableStreamDistance = amx_ctof(params[34]) < STREAMER_STATIC_DISTANCE_CUTOFF ? amx_ctof(params[34]) : amx_ctof(params[34]) * amx_ctof(params[34]);
+	vehicle->streamDistance = amx_ctof(params[34]);
+	Utility::convertArrayToContainer(amx, params[35], params[41], vehicle->worlds);
+	vehicle->worldID = Utility::getFirstValueInContainer(vehicle->worlds);
+	Utility::convertArrayToContainer(amx, params[36], params[42], vehicle->interiors);
+	vehicle->interior = Utility::getFirstValueInContainer(vehicle->interiors);
+	Utility::convertArrayToContainer(amx, params[37], params[43], vehicle->players);
+	Utility::convertArrayToContainer(amx, params[38], params[44], vehicle->areas);
+	vehicle->priority = static_cast<int>(params[39]);
+	//sampgdk_logprintf("number: %s, siren: %d, distance: %f, priority: %d, int: %d, %d, health: %f, %d, %d, p: %d", 
+		//vehicle->numberplate.c_str(), vehicle->params.siren, vehicle->streamDistance, vehicle->priority, vehicle->interior, vehicle->worldID, vehicle->health,
+		//params[41], params[43], Utility::getFirstValueInContainer(vehicle->players));
+
+	if (vehicle->worldID < 0)
+	{
+		vehicle->worldID = 0;
+	}
+	if (vehicle->interior < 0)
+	{
+		vehicle->interior = 0;
+	}
+	vehicle->position = vehicle->spawn.position;
+	vehicle->angle = vehicle->spawn.angle;
+	vehicle->color = vehicle->spawn.color;
+	vehicle->touched = false;
+	vehicle->used = false;
+	vehicle->spawnedTime = boost::chrono::steady_clock::now();
+
+	core->getGrid()->addVehicle(vehicle);
+	core->getData()->vehicles.insert(std::make_pair(vehicleID, vehicle));
+	return static_cast<cell>(vehicleID);
+}

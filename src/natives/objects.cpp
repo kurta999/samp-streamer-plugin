@@ -480,7 +480,7 @@ cell AMX_NATIVE_CALL Natives::AttachDynamicObjectToPlayer(AMX *amx, cell *params
 
 cell AMX_NATIVE_CALL Natives::AttachDynamicObjectToVehicle(AMX *amx, cell *params)
 {
-	CHECK_PARAMS(8, "AttachDynamicObjectToVehicle");
+	CHECK_PARAMS(9, "AttachDynamicObjectToVehicle");
 	boost::unordered_map<int, Item::SharedObject>::iterator o = core->getData()->objects.find(static_cast<int>(params[1]));
 	if (o != core->getData()->objects.end())
 	{
@@ -500,7 +500,22 @@ cell AMX_NATIVE_CALL Natives::AttachDynamicObjectToVehicle(AMX *amx, cell *param
 			boost::unordered_map<int, int>::iterator i = p->second.internalObjects.find(o->first);
 			if (i != p->second.internalObjects.end())
 			{
-				sampgdk::AttachPlayerObjectToVehicle(p->first, i->second, o->second->attach->vehicle, o->second->attach->positionOffset[0], o->second->attach->positionOffset[1], o->second->attach->positionOffset[2], o->second->attach->rotation[0], o->second->attach->rotation[1], o->second->attach->rotation[2]);
+				if (o->second->attach->vehicleType == STREAMER_VEHICLE_TYPE_DYNAMIC)
+				{
+					boost::unordered_map<int, Item::SharedVehicle>::iterator q = core->getData()->vehicles.find(static_cast<int>(params[2]));
+					if (q != core->getData()->vehicles.end())
+					{
+						boost::unordered_map<int, int>::iterator v = core->getData()->internalVehicles.find(q->first);
+						if (v != core->getData()->internalVehicles.end())
+						{
+							sampgdk::AttachPlayerObjectToVehicle(p->first, i->second, v->second, o->second->attach->positionOffset[0], o->second->attach->positionOffset[1], o->second->attach->positionOffset[2], o->second->attach->rotation[0], o->second->attach->rotation[1], o->second->attach->rotation[2]);
+						}
+					}
+				}
+				else
+				{
+					sampgdk::AttachPlayerObjectToVehicle(p->first, i->second, o->second->attach->vehicle, o->second->attach->positionOffset[0], o->second->attach->positionOffset[1], o->second->attach->positionOffset[2], o->second->attach->rotation[0], o->second->attach->rotation[1], o->second->attach->rotation[2]);
+				}
 				for (boost::unordered_map<int, Item::Object::Material>::iterator m = o->second->materials.begin(); m != o->second->materials.end(); ++m)
 				{
 					if (m->second.main)

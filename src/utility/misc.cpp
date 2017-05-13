@@ -166,6 +166,24 @@ boost::unordered_map<int, Item::SharedTextLabel>::iterator Utility::destroyTextL
 	return core->getData()->textLabels.erase(t);
 }
 
+boost::unordered_map<int, Item::SharedVehicle>::iterator Utility::destroyVehicle(boost::unordered_map<int, Item::SharedVehicle>::iterator v)
+{
+	Item::Vehicle::identifier.remove(v->first, core->getData()->vehicles.size());
+	boost::unordered_map<int, int>::iterator i = core->getData()->internalVehicles.find(v->first);
+	if (i != core->getData()->internalVehicles.end())
+	{
+		sampgdk::DestroyVehicle(i->second);
+		core->getData()->internalVehicles.quick_erase(i);
+	}
+	boost::unordered_map<int, Item::SharedVehicle>::iterator d = core->getData()->discoveredVehicles.find(v->first);
+	if (d != core->getData()->discoveredVehicles.end())
+	{
+		core->getData()->discoveredVehicles.erase(d);
+	}
+	core->getGrid()->removeVehicle(v->second);
+	return core->getData()->vehicles.erase(v);
+}
+
 std::size_t Utility::getChunkTickRate(int type, int playerid)
 {
 	if (playerid >= 0 && playerid < MAX_PLAYERS)
@@ -396,4 +414,20 @@ void Utility::processPendingDestroyedActors()
 			a = core->getData()->destroyedActors.erase(a);
 		}
 	}
+}
+
+bool Utility::haveAllPlayersCheckedVehicles()
+{
+	if (!core->getData()->players.empty())
+	{
+		for (boost::unordered_map<int, Player>::iterator p = core->getData()->players.begin(); p != core->getData()->players.end(); ++p)
+		{
+			if (!p->second.checkedVehicles && p->second.enabledItems[STREAMER_TYPE_VEHICLE])
+			{
+				return false;
+			}
+		}
+		return true;
+	}
+	return false;
 }

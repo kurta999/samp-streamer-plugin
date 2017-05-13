@@ -21,7 +21,7 @@
 #define INVALID_GENERIC_ID (0xFFFF)
 #define INVALID_STREAMER_ID (0)
 
-#define STREAMER_MAX_TYPES (8)
+#define STREAMER_MAX_TYPES (9)
 
 #define STREAMER_TYPE_OBJECT (0)
 #define STREAMER_TYPE_PICKUP (1)
@@ -31,6 +31,7 @@
 #define STREAMER_TYPE_3D_TEXT_LABEL (5)
 #define STREAMER_TYPE_AREA (6)
 #define STREAMER_TYPE_ACTOR (7)
+#define STREAMER_TYPE_VEHICLE (8)
 
 #define STREAMER_MAX_AREA_TYPES (5)
 
@@ -48,6 +49,9 @@
 #define STREAMER_OBJECT_TYPE_DYNAMIC (2)
 
 #define STREAMER_STATIC_DISTANCE_CUTOFF (0.0f)
+
+#define STREAMER_VEHICLE_TYPE_STATIC (0)
+#define STREAMER_VEHICLE_TYPE_DYNAMIC (1)
 
 template<typename T>
 inline void intrusive_ptr_add_ref(T *t)
@@ -106,6 +110,7 @@ namespace Item
 	struct RaceCheckpoint;
 	struct TextLabel;
 	struct Actor;
+	struct Vehicle;
 
 	typedef boost::intrusive_ptr<Area> SharedArea;
 	typedef boost::intrusive_ptr<Checkpoint> SharedCheckpoint;
@@ -115,6 +120,7 @@ namespace Item
 	typedef boost::intrusive_ptr<RaceCheckpoint> SharedRaceCheckpoint;
 	typedef boost::intrusive_ptr<TextLabel> SharedTextLabel;
 	typedef boost::intrusive_ptr<Actor> SharedActor;
+	typedef boost::intrusive_ptr<Vehicle> SharedVehicle;
 
 	struct Compare
 	{

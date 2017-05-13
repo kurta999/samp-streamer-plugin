@@ -341,6 +341,31 @@ cell AMX_NATIVE_CALL Natives::Streamer_ToggleItemStatic(AMX *amx, cell *params)
 			}
 			break;
 		}
+		case STREAMER_TYPE_VEHICLE:
+		{
+			boost::unordered_map<int, Item::SharedVehicle>::iterator v = core->getData()->vehicles.find(static_cast<int>(params[2]));
+			if (v != core->getData()->vehicles.end())
+			{
+				if (static_cast<int>(params[3]))
+				{
+					if (v->second->comparableStreamDistance > STREAMER_STATIC_DISTANCE_CUTOFF && v->second->originalComparableStreamDistance < STREAMER_STATIC_DISTANCE_CUTOFF)
+					{
+						v->second->originalComparableStreamDistance = v->second->comparableStreamDistance;
+						v->second->comparableStreamDistance = -1.0f;
+					}
+				}
+				else
+				{
+					if (v->second->comparableStreamDistance < STREAMER_STATIC_DISTANCE_CUTOFF && v->second->originalComparableStreamDistance > STREAMER_STATIC_DISTANCE_CUTOFF)
+					{
+						v->second->comparableStreamDistance = v->second->originalComparableStreamDistance;
+						v->second->originalComparableStreamDistance = -1.0f;
+					}
+				}
+				return 1;
+			}
+			break;
+		}
 		default:
 		{
 			Utility::logError("Streamer_ToggleItemStatic: Invalid type specified.");
@@ -439,6 +464,18 @@ cell AMX_NATIVE_CALL Natives::Streamer_IsToggleItemStatic(AMX *amx, cell *params
 			}
 			return 0;
 		}
+		case STREAMER_TYPE_VEHICLE:
+		{
+			boost::unordered_map<int, Item::SharedVehicle>::iterator v = core->getData()->vehicles.find(static_cast<int>(params[2]));
+			if (v != core->getData()->vehicles.end())
+			{
+				if (v->second->comparableStreamDistance < STREAMER_STATIC_DISTANCE_CUTOFF && v->second->originalComparableStreamDistance > STREAMER_STATIC_DISTANCE_CUTOFF)
+				{
+					return 1;
+				}
+			}
+			return 0;
+		}
 		default:
 		{
 			Utility::logError("Streamer_IsToggleItemStatic: Invalid type specified.");
@@ -523,6 +560,16 @@ cell AMX_NATIVE_CALL Natives::Streamer_ToggleItemInvAreas(AMX *amx, cell *params
 			}
 			break;
 		}
+		case STREAMER_TYPE_VEHICLE:
+		{
+			boost::unordered_map<int, Item::SharedVehicle>::iterator v = core->getData()->vehicles.find(static_cast<int>(params[2]));
+			if (v != core->getData()->vehicles.end())
+			{
+				v->second->inverseAreaChecking = static_cast<int>(params[3]) != 0;
+				return 1;
+			}
+			break;
+		}
 		default:
 		{
 			Utility::logError("Streamer_ToggleItemInvAreas: Invalid type specified.");
@@ -600,6 +647,15 @@ cell AMX_NATIVE_CALL Natives::Streamer_IsToggleItemInvAreas(AMX *amx, cell *para
 			}
 			break;
 		}
+		case STREAMER_TYPE_VEHICLE:
+		{
+			boost::unordered_map<int, Item::SharedVehicle>::iterator v = core->getData()->vehicles.find(static_cast<int>(params[2]));
+			if (v != core->getData()->vehicles.end())
+			{
+				return static_cast<cell>(v->second->inverseAreaChecking != 0);
+			}
+			break;
+		}
 		default:
 		{
 			Utility::logError("Streamer_IsToggleItemInvAreas: Invalid type specified.");
@@ -674,6 +730,17 @@ cell AMX_NATIVE_CALL Natives::Streamer_ToggleItemCallbacks(AMX *amx, cell *param
 			}
 			break;
 		}
+		case STREAMER_TYPE_VEHICLE:
+		{
+			boost::unordered_map<int, Item::SharedVehicle>::iterator v = core->getData()->vehicles.find(static_cast<int>(params[2]));
+			if (v != core->getData()->vehicles.end())
+			{
+				v->second->streamCallbacks = static_cast<int>(params[3]) != 0;
+				return 1;
+			}
+			break;
+		}
+
 		default:
 		{
 			Utility::logError("Streamer_ToggleItemCallbacks: Invalid type specified.");
@@ -739,6 +806,15 @@ cell AMX_NATIVE_CALL Natives::Streamer_IsToggleItemCallbacks(AMX *amx, cell *par
 			if (t != core->getData()->textLabels.end())
 			{
 				return static_cast<cell>(t->second->streamCallbacks != 0);
+			}
+			break;
+		}
+		case STREAMER_TYPE_VEHICLE:
+		{
+			boost::unordered_map<int, Item::SharedVehicle>::iterator v = core->getData()->vehicles.find(static_cast<int>(params[2]));
+			if (v != core->getData()->vehicles.end())
+			{
+				return static_cast<cell>(v->second->streamCallbacks != 0);
 			}
 			break;
 		}

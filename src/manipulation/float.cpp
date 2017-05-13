@@ -815,6 +815,97 @@ int Manipulation::getFloatData(AMX *amx, cell *params)
 			}
 			break;
 		}
+		case STREAMER_TYPE_VEHICLE:
+		{
+			boost::unordered_map<int, Item::SharedVehicle>::iterator v = core->getData()->vehicles.find(static_cast<int>(params[2]));
+			if (v != core->getData()->vehicles.end())
+			{
+				switch (static_cast<int>(params[3]))
+				{
+					case Health:
+					{
+						Utility::storeFloatInNative(amx, params[4], v->second->health);
+						return 1;
+					}
+					case QuatW:
+					{
+						Utility::storeFloatInNative(amx, params[4], v->second->quat[0]);
+						return 1;
+					}
+					case QuatX:
+					{
+						Utility::storeFloatInNative(amx, params[4], v->second->quat[1]);
+						return 1;
+					}
+					case QuatY:
+					{
+						Utility::storeFloatInNative(amx, params[4], v->second->quat[2]);
+						return 1;
+					}
+					case QuatZ:
+					{
+						Utility::storeFloatInNative(amx, params[4], v->second->quat[3]);
+						return 1;
+					}
+					case SpawnAngle:
+					{
+						Utility::storeFloatInNative(amx, params[4], v->second->spawn.angle);
+						return 1;
+					}
+					case SpawnX:
+					{
+						Utility::storeFloatInNative(amx, params[4], v->second->spawn.position[0]);
+						return 1;
+					}
+					case SpawnY:
+					{
+						Utility::storeFloatInNative(amx, params[4], v->second->spawn.position[1]);
+						return 1;
+					}
+					case SpawnZ:
+					{
+						Utility::storeFloatInNative(amx, params[4], v->second->spawn.position[2]);
+						return 1;
+					}
+					case StreamDistance:
+					{
+						Utility::storeFloatInNative(amx, params[4], std::sqrt(v->second->streamDistance));
+						return 1;
+					}
+					case X:
+					{
+						Utility::storeFloatInNative(amx, params[4], v->second->position[0]);
+						return 1;
+					}
+					case Y:
+					{
+						Utility::storeFloatInNative(amx, params[4], v->second->position[1]);
+						return 1;
+					}
+					case Z:
+					{
+						Utility::storeFloatInNative(amx, params[4], v->second->position[2]);
+						return 1;
+					}
+					case RZ:
+					{
+						Utility::storeFloatInNative(amx, params[4], v->second->angle);
+						return 1;
+					}
+
+					default:
+					{
+						error = InvalidData;
+						break;
+					}
+				}
+			}
+			else
+			{
+				error = InvalidID;
+			}
+			break;
+		}
 		default:
 		{
 			error = InvalidType;
@@ -1809,6 +1900,161 @@ int Manipulation::setFloatData(AMX *amx, cell *params)
 				error = InvalidID;
 			}
 			break;
+		}
+		case STREAMER_TYPE_VEHICLE:
+		{
+			boost::unordered_map<int, Item::SharedVehicle>::iterator v = core->getData()->vehicles.find(static_cast<int>(params[2]));
+			if (v != core->getData()->vehicles.end())
+			{
+				boost::unordered_map<int, int>::iterator i = core->getData()->internalVehicles.find(v->first);
+				switch (static_cast<int>(params[3]))
+				{
+					case Health:
+					{
+						v->second->health = amx_ctof(params[4]);
+						if (i != core->getData()->internalVehicles.end())
+						{
+							sampgdk::SetVehicleHealth(i->second, v->second->health);
+						}
+						break;
+					}
+					case SpawnAngle:
+					{
+						v->second->spawn.angle = amx_ctof(params[4]);
+						update = true;
+						break;
+					}
+					case SpawnX:
+					{
+						v->second->spawn.position[0] = amx_ctof(params[4]);
+						update = true;
+						break;
+					}
+					case SpawnY:
+					{
+						v->second->spawn.position[1] = amx_ctof(params[4]);
+
+						update = true;
+						break;
+					}
+					case SpawnZ:
+					{
+						v->second->spawn.position[2] = amx_ctof(params[4]);
+						update = true;
+						break;
+					}
+					case StreamDistance:
+					{
+						v->second->streamDistance = amx_ctof(params[4]) * amx_ctof(params[4]);
+						reassign = true;
+						break;
+					}
+					case X:
+					{
+						v->second->position[0] = amx_ctof(params[4]);
+						reassign = true;
+						update = true;
+						break;
+					}
+					case Y:
+					{
+						v->second->position[1] = amx_ctof(params[4]);
+						reassign = true;
+						update = true;
+						break;
+					}
+					case Z:
+					{
+						v->second->position[2] = amx_ctof(params[4]);
+						reassign = true;
+						update = true;
+						break;
+					}
+					case RZ:
+					{
+						v->second->angle = amx_ctof(params[4]);
+						if (i != core->getData()->internalVehicles.end())
+						{
+							sampgdk::SetVehicleZAngle(i->second, v->second->angle);
+						}
+						break;
+					}
+					default:
+					{
+						error = InvalidData;
+						break;
+					}
+				}
+				if (reassign)
+				{
+					core->getGrid()->removeVehicle(v->second, true);
+				}
+				if (update)
+				{
+					boost::unordered_map<int, int>::iterator i = core->getData()->internalVehicles.find(v->first);
+					if (i != core->getData()->internalVehicles.end())
+					{
+						sampgdk::DestroyVehicle(i->second);
+						i->second = sampgdk::CreateVehicle(v->second->modelID, v->second->position[0], v->second->position[1], v->second->position[2], v->second->angle, v->second->color[0], v->second->color[1], -1, v->second->spawn.addsiren);
+						if (i->second == INVALID_VEHICLE_ID)
+						{
+							return 0;
+						}
+						if (!v->second->numberplate.empty())
+						{
+							sampgdk::SetVehicleNumberPlate(i->second, v->second->numberplate.c_str());
+						}
+						if (v->second->interior)
+						{
+							sampgdk::LinkVehicleToInterior(i->second, v->second->interior);
+						}
+						if (v->second->worldID)
+						{
+							sampgdk::SetVehicleVirtualWorld(i->second, v->second->worldID);
+						}
+						if (!v->second->carmods.empty())
+						{
+							for (std::vector<int>::iterator c = v->second->carmods.begin(); c != v->second->carmods.end(); c++)
+							{
+								sampgdk::AddVehicleComponent(i->second, *c);
+							}
+						}
+						if (v->second->paintjob != 3)
+						{
+							sampgdk::ChangeVehiclePaintjob(i->second, v->second->paintjob);
+						}
+						if (v->second->panels != 0 || v->second->doors != 0 || v->second->lights != 0 || v->second->tires != 0)
+						{
+							sampgdk::UpdateVehicleDamageStatus(i->second, v->second->panels, v->second->doors, v->second->lights, v->second->tires);
+						}
+						if (v->second->health != 1000.0f)
+						{
+							sampgdk::SetVehicleHealth(i->second, v->second->health);
+						}
+						if (v->second->params.engine != VEHICLE_PARAMS_UNSET || v->second->params.lights != VEHICLE_PARAMS_UNSET || v->second->params.alarm != VEHICLE_PARAMS_UNSET || v->second->params.doors != VEHICLE_PARAMS_UNSET || v->second->params.bonnet != VEHICLE_PARAMS_UNSET || v->second->params.boot != VEHICLE_PARAMS_UNSET || v->second->params.objective != VEHICLE_PARAMS_UNSET)
+						{
+							sampgdk::SetVehicleParamsEx(i->second, v->second->params.engine, v->second->params.lights, v->second->params.alarm, v->second->params.doors, v->second->params.bonnet, v->second->params.boot, v->second->params.objective);
+						}
+						if (v->second->params.cardoors.driver != VEHICLE_PARAMS_UNSET || v->second->params.cardoors.passenger != VEHICLE_PARAMS_UNSET || v->second->params.cardoors.backleft != VEHICLE_PARAMS_UNSET || v->second->params.cardoors.backright != VEHICLE_PARAMS_UNSET)
+						{
+							sampgdk::SetVehicleParamsCarDoors(i->second, v->second->params.cardoors.driver, v->second->params.cardoors.passenger, v->second->params.cardoors.backleft, v->second->params.cardoors.backright);
+						}
+						if (v->second->params.carwindows.driver != VEHICLE_PARAMS_UNSET || v->second->params.carwindows.passenger != VEHICLE_PARAMS_UNSET || v->second->params.carwindows.backleft != VEHICLE_PARAMS_UNSET || v->second->params.carwindows.backright != VEHICLE_PARAMS_UNSET)
+						{
+							sampgdk::SetVehicleParamsCarWindows(i->second, v->second->params.carwindows.driver, v->second->params.carwindows.passenger, v->second->params.carwindows.backleft, v->second->params.carwindows.backright);
+						}
+					}
+				}
+				if (reassign || update)
+				{
+					return 1;
+				}
+			}
+			else
+			{
+				error = InvalidID;
+				break;
+			}
 		}
 		default:
 		{

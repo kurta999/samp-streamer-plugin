@@ -509,6 +509,53 @@ int Manipulation::getIntData(AMX *amx, cell *params)
 			}
 			break;
 		}
+		case STREAMER_TYPE_VEHICLE:
+		{
+			boost::unordered_map<int, Item::SharedVehicle>::iterator v = core->getData()->vehicles.find(static_cast<int>(params[2]));
+			if (v != core->getData()->vehicles.end())
+			{
+				switch (static_cast<int>(params[3]))
+				{
+					case AreaID:
+					{
+						return Utility::getFirstValueInContainer(v->second->areas);
+					}
+					case ExtraID:
+					{
+						return Utility::getFirstValueInContainer(v->second->extras);
+					}
+					case InteriorID:
+					{
+						return Utility::getFirstValueInContainer(v->second->interiors);
+					}
+					case ModelID:
+					{
+						return v->second->modelID;
+					}
+					case RespawnTime:
+					{
+						return v->second->respawnDelay;
+					}
+					case PaintJob:
+					{
+						return v->second->paintjob;
+					}
+					case PlayerID:
+					{
+						return Utility::getFirstValueInContainer(v->second->players);
+					}
+					case Priority:
+					{
+						return v->second->priority;
+					}
+					case WorldID:
+					{
+						return Utility::getFirstValueInContainer(v->second->worlds);
+					}
+
+				}
+			}
+		}
 		default:
 		{
 			error = InvalidType;
@@ -1327,6 +1374,132 @@ int Manipulation::setIntData(AMX *amx, cell *params)
 				error = InvalidID;
 			}
 			break;
+		}
+		case STREAMER_TYPE_VEHICLE:
+		{
+			boost::unordered_map<int, Item::SharedVehicle>::iterator v = core->getData()->vehicles.find(static_cast<int>(params[2]));
+			if (v != core->getData()->vehicles.end())
+			{
+				boost::unordered_map<int, int>::iterator i = core->getData()->internalVehicles.find(v->first);
+				switch (static_cast<int>(params[3]))
+				{
+					case Color:
+					{
+						v->second->color[0] = static_cast<int>(params[4]);
+						if (i != core->getData()->internalVehicles.end())
+						{
+							sampgdk::ChangeVehicleColor(i->second, v->second->color[0], v->second->color[1]);
+						}
+					}
+					case Color2:
+					{
+						v->second->color[1] = static_cast<int>(params[4]);
+						if (i != core->getData()->internalVehicles.end())
+						{
+							sampgdk::ChangeVehicleColor(i->second, v->second->color[0], v->second->color[1]);
+						}
+					}
+					case ExtraID:
+					{
+						return Utility::setFirstValueInContainer(v->second->extras, static_cast<int>(params[4])) != 0;
+					}
+					case InteriorID:
+					{
+						v->second->interior = static_cast<int>(params[4]);
+						if (i != core->getData()->internalVehicles.end())
+						{
+							sampgdk::LinkVehicleToInterior(i->second, v->second->interior);
+						}
+					}
+					case ModelID:
+					{
+						v->second->modelID = static_cast<int>(params[4]);
+						update = true;
+					}
+					case PaintJob:
+					{
+						v->second->paintjob = static_cast<int>(params[4]);
+						if (i != core->getData()->internalVehicles.end())
+						{
+							sampgdk::ChangeVehiclePaintjob(i->second, v->second->paintjob);
+						}
+					}
+					case Siren:
+					{
+						v->second->spawn.addsiren = static_cast<int>(params[4]) != 0;
+						update = true;
+					}
+					default:
+					{
+						error = InvalidData;
+						break;
+					}
+				}
+				if (update)
+				{
+					boost::unordered_map<int, int>::iterator i = core->getData()->internalVehicles.find(v->first);
+					if (i != core->getData()->internalVehicles.end())
+					{
+						sampgdk::DestroyVehicle(i->second);
+						i->second = sampgdk::CreateVehicle(v->second->modelID, v->second->position[0], v->second->position[1], v->second->position[2], v->second->angle, v->second->color[0], v->second->color[1], -1, v->second->spawn.addsiren);
+						if (i->second == INVALID_VEHICLE_ID)
+						{
+							return 0;
+						}
+						if (!v->second->numberplate.empty())
+						{
+							sampgdk::SetVehicleNumberPlate(i->second, v->second->numberplate.c_str());
+						}
+						if (v->second->interior)
+						{
+							sampgdk::LinkVehicleToInterior(i->second, v->second->interior);
+						}
+						if (v->second->worldID)
+						{
+							sampgdk::SetVehicleVirtualWorld(i->second, v->second->worldID);
+						}
+						if (!v->second->carmods.empty())
+						{
+							for (std::vector<int>::iterator c = v->second->carmods.begin(); c != v->second->carmods.end(); c++)
+							{
+								sampgdk::AddVehicleComponent(i->second, *c);
+							}
+						}
+						if (v->second->paintjob != 3)
+						{
+							sampgdk::ChangeVehiclePaintjob(i->second, v->second->paintjob);
+						}
+						if (v->second->panels != 0 || v->second->doors != 0 || v->second->lights != 0 || v->second->tires != 0)
+						{
+							sampgdk::UpdateVehicleDamageStatus(i->second, v->second->panels, v->second->doors, v->second->lights, v->second->tires);
+						}
+						if (v->second->health != 1000.0f)
+						{
+							sampgdk::SetVehicleHealth(i->second, v->second->health);
+						}
+						if (v->second->params.engine != VEHICLE_PARAMS_UNSET || v->second->params.lights != VEHICLE_PARAMS_UNSET || v->second->params.alarm != VEHICLE_PARAMS_UNSET || v->second->params.doors != VEHICLE_PARAMS_UNSET || v->second->params.bonnet != VEHICLE_PARAMS_UNSET || v->second->params.boot != VEHICLE_PARAMS_UNSET || v->second->params.objective != VEHICLE_PARAMS_UNSET)
+						{
+							sampgdk::SetVehicleParamsEx(i->second, v->second->params.engine, v->second->params.lights, v->second->params.alarm, v->second->params.doors, v->second->params.bonnet, v->second->params.boot, v->second->params.objective);
+						}
+						if (v->second->params.cardoors.driver != VEHICLE_PARAMS_UNSET || v->second->params.cardoors.passenger != VEHICLE_PARAMS_UNSET || v->second->params.cardoors.backleft != VEHICLE_PARAMS_UNSET || v->second->params.cardoors.backright != VEHICLE_PARAMS_UNSET)
+						{
+							sampgdk::SetVehicleParamsCarDoors(i->second, v->second->params.cardoors.driver, v->second->params.cardoors.passenger, v->second->params.cardoors.backleft, v->second->params.cardoors.backright);
+						}
+						if (v->second->params.carwindows.driver != VEHICLE_PARAMS_UNSET || v->second->params.carwindows.passenger != VEHICLE_PARAMS_UNSET || v->second->params.carwindows.backleft != VEHICLE_PARAMS_UNSET || v->second->params.carwindows.backright != VEHICLE_PARAMS_UNSET)
+						{
+							sampgdk::SetVehicleParamsCarWindows(i->second, v->second->params.carwindows.driver, v->second->params.carwindows.passenger, v->second->params.carwindows.backleft, v->second->params.carwindows.backright);
+						}
+					}
+				}
+				if (update)
+				{
+					return 1;
+				}
+			}
+			else
+			{
+				error = InvalidID;
+			}
 		}
 		default:
 		{

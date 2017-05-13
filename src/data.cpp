@@ -32,11 +32,13 @@ Data::Data()
 	globalMaxItems[STREAMER_TYPE_3D_TEXT_LABEL] = std::numeric_limits<std::size_t>::max();
 	globalMaxItems[STREAMER_TYPE_AREA] = std::numeric_limits<std::size_t>::max();
 	globalMaxItems[STREAMER_TYPE_ACTOR] = std::numeric_limits<std::size_t>::max();
+	globalMaxItems[STREAMER_TYPE_VEHICLE] = std::numeric_limits<std::size_t>::max();
 	globalMaxVisibleItems[STREAMER_TYPE_OBJECT] = 500;
 	globalMaxVisibleItems[STREAMER_TYPE_PICKUP] = 4096;
 	globalMaxVisibleItems[STREAMER_TYPE_MAP_ICON] = 100;
 	globalMaxVisibleItems[STREAMER_TYPE_3D_TEXT_LABEL] = 1024;
 	globalMaxVisibleItems[STREAMER_TYPE_ACTOR] = 1000;
+	globalMaxVisibleItems[STREAMER_TYPE_VEHICLE] = 2000;
 	globalRadiusMultipliers[STREAMER_TYPE_OBJECT] = 1.0f;
 	globalRadiusMultipliers[STREAMER_TYPE_PICKUP] = 1.0f;
 	globalRadiusMultipliers[STREAMER_TYPE_CP] = 1.0f;
@@ -45,10 +47,12 @@ Data::Data()
 	globalRadiusMultipliers[STREAMER_TYPE_3D_TEXT_LABEL] = 1.0f;
 	globalRadiusMultipliers[STREAMER_TYPE_AREA] = 1.0f;
 	globalRadiusMultipliers[STREAMER_TYPE_ACTOR] = 1.0f;
+	globalRadiusMultipliers[STREAMER_TYPE_VEHICLE] = 1.0f;
 	static const int defaultTypePriority[] =
 	{
 		STREAMER_TYPE_AREA,
 		STREAMER_TYPE_OBJECT,
+		STREAMER_TYPE_VEHICLE,
 		STREAMER_TYPE_CP,
 		STREAMER_TYPE_RACE_CP,
 		STREAMER_TYPE_MAP_ICON,
@@ -124,6 +128,10 @@ std::size_t Data::getGlobalMaxVisibleItems(int type)
 		{
 			return globalMaxVisibleItems[STREAMER_TYPE_ACTOR];
 		}
+		case STREAMER_TYPE_VEHICLE:
+		{
+			return globalMaxVisibleItems[STREAMER_TYPE_VEHICLE];
+		}
 	}
 	return 0;
 }
@@ -155,6 +163,11 @@ bool Data::setGlobalMaxVisibleItems(int type, std::size_t value)
 		case STREAMER_TYPE_ACTOR:
 		{
 			globalMaxVisibleItems[STREAMER_TYPE_ACTOR] = value;
+			return true;
+		}
+		case STREAMER_TYPE_VEHICLE:
+		{
+			globalMaxVisibleItems[STREAMER_TYPE_VEHICLE] = value;
 			return true;
 		}
 	}

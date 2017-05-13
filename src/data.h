@@ -50,9 +50,11 @@ public:
 
 	boost::unordered_map<int, Item::SharedActor> discoveredActors;
 	boost::unordered_map<int, Item::SharedPickup> discoveredPickups;
+	boost::unordered_map<int, Item::SharedVehicle> discoveredVehicles;
 
 	boost::unordered_map<int, int> internalActors;
 	boost::unordered_map<int, int> internalPickups;
+	boost::unordered_map<int, int> internalVehicles;
 
 	boost::unordered_map<int, Item::SharedActor> actors;
 	boost::unordered_map<int, Item::SharedArea> areas;
@@ -62,6 +64,7 @@ public:
 	boost::unordered_map<int, Item::SharedPickup> pickups;
 	boost::unordered_map<int, Item::SharedRaceCheckpoint> raceCheckpoints;
 	boost::unordered_map<int, Item::SharedTextLabel> textLabels;
+	boost::unordered_map<int, Item::SharedVehicle> vehicles;
 
 	boost::unordered_map<int, Player> players;
 

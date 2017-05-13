@@ -66,6 +66,7 @@ public:
 	boost::unordered_set<Item::SharedObject> attachedObjects;
 	boost::unordered_set<Item::SharedTextLabel> attachedTextLabels;
 	boost::unordered_set<Item::SharedObject> movingObjects;
+	boost::unordered_set<Item::SharedVehicle> movingVehicles;
 private:
 	void calculateAverageElapsedTime();
 
@@ -92,10 +93,15 @@ private:
 	void discoverTextLabels(Player &player, const std::vector<SharedCell> &cells);
 	void streamTextLabels(Player &player, bool automatic);
 
+	void discoverVehicles(Player &player, const std::vector<SharedCell> &cells);
+	void streamVehicles();
+
 	void processMovingObjects();
 	void processAttachedAreas();
 	void processAttachedObjects();
 	void processAttachedTextLabels();
+	void processVehicles();
+	void processMovingVehicles();
 
 	std::size_t chunkSize[STREAMER_MAX_TYPES];
 
@@ -126,6 +132,13 @@ private:
 	{
 		return (a[b] && (c.empty() || c.find(d) != c.end()) && (e.empty() || e.find(f) != e.end()) && (g.empty() || i ? !Utility::isContainerWithinContainer(g, h) : Utility::isContainerWithinContainer(g, h)));
 	}
+
+	template<std::size_t N, typename T>
+	inline bool doesPlayerSatisfyConditions(const std::bitset<N> &a, const T &b, const int &c, const T &d, const boost::unordered_set<T> &e, const T &f, const boost::unordered_set<T> &g, const boost::unordered_set<T> &h, bool i)
+	{
+		return (a[b] && (c == -1 || c == d) && (e.empty() || e.find(f) != e.end()) && (g.empty() || i ? !Utility::isContainerWithinContainer(g, h) : Utility::isContainerWithinContainer(g, h)));
+	}
+
 };
 
 #endif
