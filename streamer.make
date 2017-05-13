@@ -90,6 +90,7 @@ OBJECTS := \
 	$(OBJDIR)/objects.o \
 	$(OBJDIR)/pickups.o \
 	$(OBJDIR)/actors.o \
+	$(OBJDIR)/vehicles.o \	
 	$(OBJDIR)/race-checkpoints.o \
 	$(OBJDIR)/settings.o \
 	$(OBJDIR)/text-labels.o \
@@ -229,6 +230,9 @@ $(OBJDIR)/pickups.o: src/natives/pickups.cpp
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/actors.o: src/natives/actors.cpp
+	@echo $(notdir $<)
+	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
+$(OBJDIR)/vehicles.o: src/natives/vehicles.cpp
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/race-checkpoints.o: src/natives/race-checkpoints.cpp

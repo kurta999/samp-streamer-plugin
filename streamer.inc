@@ -31,6 +31,7 @@
 #define STREAMER_TYPE_3D_TEXT_LABEL (5)
 #define STREAMER_TYPE_AREA (6)
 #define STREAMER_TYPE_ACTOR (7)
+#define STREAMER_TYPE_VEHICLE (8)
 
 #define STREAMER_AREA_TYPE_CIRCLE (0)
 #define STREAMER_AREA_TYPE_CYLINDER (1)
@@ -42,6 +43,9 @@
 #define STREAMER_OBJECT_TYPE_GLOBAL (0)
 #define STREAMER_OBJECT_TYPE_PLAYER (1)
 #define STREAMER_OBJECT_TYPE_DYNAMIC (2)
+
+#define STREAMER_VEHICLE_TYPE_STATIC (0)
+#define STREAMER_VEHICLE_TYPE_DYNAMIC (1)
 
 #define STREAMER_MAX_TYPES (8)
 #define STREAMER_MAX_AREA_TYPES (5)
@@ -62,6 +66,7 @@
 	#define STREAMER_TAG_MAP_ICON
 	#define STREAMER_TAG_AREA
 	#define STREAMER_TAG_ACTOR
+	#define STREAMER_TAG_VEHICLE
 
 	#if !defined STREAMER_REMOVE_TEXT3D_TAG
 		#if !defined STREAMER_USE_DYNAMIC_TEXT3D_TAG
@@ -85,8 +90,9 @@
 	#define STREAMER_TAG_3D_TEXT_LABEL DynamicText3D:
 	#define STREAMER_TAG_AREA DynamicArea:
 	#define STREAMER_TAG_ACTOR DynamicActor:
+	#define STREAMER_TAG_VEHICLE DynamicVehicle:
 
-	#define STREAMER_ALL_TAGS {DynamicObject,DynamicPickup,DynamicCP,DynamicRaceCP,DynamicMapIcon,DynamicText3D,DynamicArea,DynamicActor,_}:
+	#define STREAMER_ALL_TAGS {DynamicObject,DynamicPickup,DynamicCP,DynamicRaceCP,DynamicMapIcon,DynamicText3D,DynamicArea,DynamicActor,DynamicVehicle,_}:
 #endif
 
 #if !defined STREAMER_OBJECT_SD
@@ -113,6 +119,9 @@
 #if !defined STREAMER_ACTOR_SD
 	#define STREAMER_ACTOR_SD 200.0
 #endif
+#if !defined STREAMER_VEHICLE_SD
+	#define STREAMER_VEHICLE_SD 250.0
+#endif
 
 // Include File Version
 
@@ -137,7 +146,8 @@ enum
 	E_STREAMER_ATTACH_X,
 	E_STREAMER_ATTACH_Y,
 	E_STREAMER_ATTACH_Z,
-	E_STREAMER_COLOR,
+	E_STREAMER_COLOR_1,
+	E_STREAMER_COLOR_2,
 	E_STREAMER_DRAW_DISTANCE,
 	E_STREAMER_EXTRA_ID,
 	E_STREAMER_HEALTH,
@@ -160,13 +170,26 @@ enum
 	E_STREAMER_NEXT_X,
 	E_STREAMER_NEXT_Y,
 	E_STREAMER_NEXT_Z,
+	E_STREAMER_PAINTJOB,
 	E_STREAMER_PLAYER_ID,
 	E_STREAMER_PRIORITY,
+	E_STREAMER_QUAT_W,
+	E_STREAMER_QUAT_X,
+	E_STREAMER_QUAT_Y,
+	E_STREAMER_QUAT_Z,
+	E_STREAMER_RESPAWN_TIME,
 	E_STREAMER_ROTATION,
 	E_STREAMER_R_X,
 	E_STREAMER_R_Y,
 	E_STREAMER_R_Z,
 	E_STREAMER_SIZE,
+	E_STREAMER_SPAWN_ANGLE,
+	E_STREAMER_SPAWN_COLOR_1,
+	E_STREAMER_SPAWN_COLOR_2,
+	E_STREAMER_SPAWN_X,
+	E_STREAMER_SPAWN_Y,
+	E_STREAMER_SPAWN_Z,
+	E_STREAMER_SIREN,
 	E_STREAMER_STREAM_DISTANCE,
 	E_STREAMER_STYLE,
 	E_STREAMER_SYNC_ROTATION,
@@ -177,6 +200,9 @@ enum
 	E_STREAMER_Y,
 	E_STREAMER_Z
 }
+
+// For backward compatibility
+#define E_STREAMER_COLOR E_STREAMER_COLOR_1
 
 // Natives (Settings)
 
@@ -270,7 +296,7 @@ native IsDynamicObjectMoving(STREAMER_TAG_OBJECT objectid);
 native AttachCameraToDynamicObject(playerid, STREAMER_TAG_OBJECT objectid);
 native AttachDynamicObjectToObject(STREAMER_TAG_OBJECT objectid, attachtoid, Float:offsetx, Float:offsety, Float:offsetz, Float:rx, Float:ry, Float:rz, syncrotation = 1);
 native AttachDynamicObjectToPlayer(STREAMER_TAG_OBJECT objectid, playerid, Float:offsetx, Float:offsety, Float:offsetz, Float:rx, Float:ry, Float:rz);
-native AttachDynamicObjectToVehicle(STREAMER_TAG_OBJECT objectid, vehicleid, Float:offsetx, Float:offsety, Float:offsetz, Float:rx, Float:ry, Float:rz);
+native AttachDynamicObjectToVehicle(STREAMER_TAG_OBJECT objectid, vehicleid, Float:offsetx, Float:offsety, Float:offsetz, Float:rx, Float:ry, Float:rz, vehicletype = STREAMER_VEHICLE_TYPE_DYNAMIC);
 native EditDynamicObject(playerid, STREAMER_TAG_OBJECT objectid);
 native IsDynamicObjectMaterialUsed(STREAMER_TAG_OBJECT objectid, materialindex);
 native GetDynamicObjectMaterial(STREAMER_TAG_OBJECT objectid, materialindex, &modelid, txdname[], texturename[], &materialcolor, maxtxdname = sizeof txdname, maxtexturename = sizeof texturename);
@@ -310,7 +336,7 @@ native IsValidDynamicMapIcon(STREAMER_TAG_MAP_ICON iconid);
 
 // Natives (3D Text Labels)
 
-native STREAMER_TAG_3D_TEXT_LABEL CreateDynamic3DTextLabel(const text[], color, Float:x, Float:y, Float:z, Float:drawdistance, attachedplayer = INVALID_PLAYER_ID, attachedvehicle = INVALID_VEHICLE_ID, testlos = 0, worldid = -1, interiorid = -1, playerid = -1, Float:streamdistance = STREAMER_3D_TEXT_LABEL_SD, STREAMER_TAG_AREA areaid = STREAMER_TAG_AREA -1, priority = 0);
+native STREAMER_TAG_3D_TEXT_LABEL CreateDynamic3DTextLabel(const text[], color, Float:x, Float:y, Float:z, Float:drawdistance, attachedplayer = INVALID_PLAYER_ID, attachedvehicle = INVALID_VEHICLE_ID, vehicletype = STREAMER_VEHICLE_TYPE_DYNAMIC, testlos = 0, worldid = -1, interiorid = -1, playerid = -1, Float:streamdistance = STREAMER_3D_TEXT_LABEL_SD, STREAMER_TAG_AREA areaid = STREAMER_TAG_AREA -1, priority = 0);
 native DestroyDynamic3DTextLabel(STREAMER_TAG_3D_TEXT_LABEL id);
 native IsValidDynamic3DTextLabel(STREAMER_TAG_3D_TEXT_LABEL id);
 native GetDynamic3DTextLabelText(STREAMER_TAG_3D_TEXT_LABEL id, text[], maxtext = sizeof text);
@@ -345,7 +371,7 @@ native GetDynamicAreasForLine(Float:x1, Float:y1, Float:z1, Float:x2, Float:y2, 
 native GetNumberDynamicAreasForLine(Float:x1, Float:y1, Float:z1, Float:x2, Float:y2, Float:z2);
 native AttachDynamicAreaToObject(STREAMER_TAG_AREA areaid, STREAMER_TAG_OBJECT_ALT objectid, type = STREAMER_OBJECT_TYPE_DYNAMIC, playerid = INVALID_PLAYER_ID, Float:offsetx = 0.0, Float:offsety = 0.0, Float:offsetz = 0.0);
 native AttachDynamicAreaToPlayer(STREAMER_TAG_AREA areaid, playerid, Float:offsetx = 0.0, Float:offsety = 0.0, Float:offsetz = 0.0);
-native AttachDynamicAreaToVehicle(STREAMER_TAG_AREA areaid, vehicleid, Float:offsetx = 0.0, Float:offsety = 0.0, Float:offsetz = 0.0);
+native AttachDynamicAreaToVehicle(STREAMER_TAG_AREA areaid, vehicleid, vehicletype = STREAMER_VEHICLE_TYPE_DYNAMIC, Float:offsetx = 0.0, Float:offsety = 0.0, Float:offsetz = 0.0);
 native ToggleDynAreaSpectateMode(STREAMER_TAG_AREA areaid, toggle);
 native IsToggleDynAreaSpectateMode(STREAMER_TAG_AREA areaid);
 
@@ -370,6 +396,65 @@ native IsDynamicActorInvulnerable(STREAMER_TAG_ACTOR actorid);
 native STREAMER_TAG_ACTOR GetPlayerTargetDynamicActor(playerid);
 native STREAMER_TAG_ACTOR GetPlayerCameraTargetDynActor(playerid);
 
+// Natives (Vehicles)
+
+native STREAMER_TAG_VEHICLE CreateDynamicVehicle(modelid, Float:fX, Float:fY, Float:fZ, Float:fRot, color1, color2, respawndelay, addsiren = 0, worldid = -1, interiorid = 0, playerid = -1, 
+	Float:streamdistance = STREAMER_VEHICLE_SD, STREAMER_TAG_AREA areaid = STREAMER_TAG_AREA -1, priority = 0);
+		
+	
+native DestroyDynamicVehicle(STREAMER_TAG_VEHICLE vehicleid);
+native IsValidDynamicVehicle(STREAMER_TAG_VEHICLE vehicleid);
+native IsDynamicVehicleStreamedIn(STREAMER_TAG_VEHICLE vehicleid, forplayerid);
+native GetDynamicVehicleSpawnInfo(STREAMER_TAG_VEHICLE vehicleid, &Float:fX, &Float:fY, &Float:fZ, &Float:fRot, &color1, &color2, &siren);
+native GetDynamicVehiclePos(STREAMER_TAG_VEHICLE vehicleid, &Float:x, &Float:y, &Float:z);
+native SetDynamicVehiclePos(STREAMER_TAG_VEHICLE vehicleid, Float:x, Float:y, Float:z);
+native GetDynamicVehicleZAngle(STREAMER_TAG_VEHICLE vehicleid, &Float:z_angle);
+native GetDynamicVehicleRotationQuat(STREAMER_TAG_VEHICLE vehicleid, &Float:w, &Float:x, &Float:y, &Float:z);
+native SetDynamicVehicleZAngle(STREAMER_TAG_VEHICLE vehicleid, Float:z_angle);
+native Float:GetDynamicVehDistanceFromPoint(STREAMER_TAG_VEHICLE vehicleid, Float:X, Float:Y, Float:Z);
+native SetDynamicVehParamsForPlayer(STREAMER_TAG_VEHICLE vehicleid,playerid,objective,doorslocked);
+native SetDynamicVehicleParamsEx(STREAMER_TAG_VEHICLE vehicleid, engine, lights, alarm, doors, bonnet, boot, objective);
+native GetDynamicVehicleParamsEx(STREAMER_TAG_VEHICLE vehicleid, &engine, &lights, &alarm, &doors, &bonnet, &boot, &objective);
+native GetDynamicVehParamsSirenState(STREAMER_TAG_VEHICLE vehicleid);
+native SetDynamicVehParamsCarDoors(STREAMER_TAG_VEHICLE vehicleid, driver, passenger, backleft, backright);
+native GetDynamicVehParamsCarDoors(STREAMER_TAG_VEHICLE vehicleid, &driver, &passenger, &backleft, &backright);
+native SetDynamicVehParamsCarWindows(STREAMER_TAG_VEHICLE vehicleid, driver, passenger, backleft, backright);
+native GetDynamicVehParamsCarWindows(STREAMER_TAG_VEHICLE vehicleid, &driver, &passenger, &backleft, &backright);
+native SetDynamicVehicleToRespawn(STREAMER_TAG_VEHICLE vehicleid);
+native LinkDynamicVehicleToInterior(STREAMER_TAG_VEHICLE vehicleid, interiorid);
+native GetDynamicVehicleInterior(STREAMER_TAG_VEHICLE vehicleid);
+native AddDynamicVehicleComponent(STREAMER_TAG_VEHICLE vehicleid, componentid);
+native RemoveDynamicVehicleComponent(STREAMER_TAG_VEHICLE vehicleid, componentid);
+native ChangeDynamicVehicleColor(STREAMER_TAG_VEHICLE vehicleid, color1, color2);
+native GetDynamicVehicleColor(STREAMER_TAG_VEHICLE vehicleid, &color1, &color2);
+native ChangeDynamicVehiclePaintjob(STREAMER_TAG_VEHICLE vehicleid, paintjobid);
+native GetDynamicVehiclePaintjob(STREAMER_TAG_VEHICLE vehicleid);
+native SetDynamicVehicleHealth(STREAMER_TAG_VEHICLE vehicleid, Float:health);
+native GetDynamicVehicleHealth(STREAMER_TAG_VEHICLE vehicleid, &Float:health);
+native AttachTrailerToDynamicVehicle(STREAMER_TAG_VEHICLE trailerid, STREAMER_TAG_VEHICLE vehicleid);
+native DetachTrailerFromDynamicVeh(STREAMER_TAG_VEHICLE vehicleid);
+native IsTrailerAttachedToDynamicVeh(STREAMER_TAG_VEHICLE vehicleid);
+native GetDynamicVehicleTrailer(STREAMER_TAG_VEHICLE vehicleid);
+native SetDynamicVehicleNumberPlate(STREAMER_TAG_VEHICLE vehicleid, plate[]);
+native GetDynamicVehicleNumberPlate(STREAMER_TAG_VEHICLE vehicleid, plate[], size = sizeof(plate));
+native GetDynamicVehicleModel(STREAMER_TAG_VEHICLE vehicleid);
+native GetDynamicVehComponentInSlot(STREAMER_TAG_VEHICLE vehicleid, slot); // There is 1 slot for each CARMODTYPE_*
+native RepairDynamicVehicle(STREAMER_TAG_VEHICLE vehicleid); // Repairs the damage model and resets the health
+native GetDynamicVehicleVelocity(STREAMER_TAG_VEHICLE vehicleid, &Float:X, &Float:Y, &Float:Z);
+native SetDynamicVehicleVelocity(STREAMER_TAG_VEHICLE vehicleid, Float:X, Float:Y, Float:Z);
+native SetDynamicVehAngularVelocity(STREAMER_TAG_VEHICLE vehicleid, Float:X, Float:Y, Float:Z);
+native GetDynamicVehicleDamageStatus(STREAMER_TAG_VEHICLE vehicleid, &panels, &doors, &lights, &tires);
+native UpdateDynamicVehDamageStatus(STREAMER_TAG_VEHICLE vehicleid, panels, doors, lights, tires);
+native SetDynamicVehicleVirtualWorld(STREAMER_TAG_VEHICLE vehicleid, worldid);
+native GetDynamicVehicleVirtualWorld(STREAMER_TAG_VEHICLEvehicleid);
+native GetPlayerSurfingDynamicVehID(playerid);
+native PutPlayerInDynamicVehicle(playerid, STREAMER_TAG_VEHICLE vehicleid, seatid);
+native GetPlayerDynamicVehicleID(playerid);
+native IsPlayerInDynamicVehicle(playerid, STREAMER_TAG_VEHICLE vehicleid);
+native IsPlayerInAnyDynamicVehicle(STREAMER_TAG_VEHICLE vehicleid);
+native IsDynamicVehicleOccupied(STREAMER_TAG_VEHICLE vehicleid);
+native PlayerSpectateDynamicVehicle(playerid, STREAMER_TAG_VEHICLE targetvehicleid, mode = 0);
+
 // Natives (Extended)
 
 native STREAMER_TAG_OBJECT CreateDynamicObjectEx(modelid, Float:x, Float:y, Float:z, Float:rx, Float:ry, Float:rz, Float:streamdistance = STREAMER_OBJECT_SD, Float:drawdistance = STREAMER_OBJECT_DD, worlds[] = { -1 }, interiors[] = { -1 }, players[] = { -1 }, STREAMER_TAG_AREA areas[] = { STREAMER_TAG_AREA -1 }, priority = 0, maxworlds = sizeof worlds, maxinteriors = sizeof interiors, maxplayers = sizeof players, maxareas = sizeof areas);
@@ -386,7 +471,14 @@ native STREAMER_TAG_AREA CreateDynamicCuboidEx(Float:minx, Float:miny, Float:min
 native STREAMER_TAG_AREA CreateDynamicCubeEx(Float:minx, Float:miny, Float:minz, Float:maxx, Float:maxy, Float:maxz, worlds[] = { -1 }, interiors[] = { -1 }, players[] = { -1 }, priority = 0, maxworlds = sizeof worlds, maxinteriors = sizeof interiors, maxplayers = sizeof players);
 native STREAMER_TAG_AREA CreateDynamicPolygonEx(Float:points[], Float:minz = -FLOAT_INFINITY, Float:maxz = FLOAT_INFINITY, maxpoints = sizeof points, worlds[] = { -1 }, interiors[] = { -1 }, players[] = { -1 }, priority = 0, maxworlds = sizeof worlds, maxinteriors = sizeof interiors, maxplayers = sizeof players);
 native STREAMER_TAG_ACTOR CreateDynamicActorEx(modelid, Float:x, Float:y, Float:z, Float:r, invulnerable = 1, Float:health = 100.0, Float:streamdistance = STREAMER_ACTOR_SD, worlds[] = { -1 }, interiors[] = { -1 }, players[] = { -1 }, STREAMER_TAG_AREA areas[] = { STREAMER_TAG_AREA -1 }, priority = 0, maxworlds = sizeof worlds, maxinteriors = sizeof interiors, maxplayers = sizeof players, maxareas = sizeof areas);
-
+native STREAMER_TAG_VEHICLE CreateDynamicVehicleEx(modelid, Float:fX, Float:fY, Float:fZ, Float:fRot, color1, color2, respawndelay, addsiren = 0,
+	paintjob = 3, Float:health = 1000.0, panels = 0, doors = 0, light = 0, tires = 0,
+	param_engine = -1, param_lights = -1, param_alarm = -1, param_doors = -1, param_bonnet = -1, param_boot = -1, param_objective = -1,
+	doors_driver = -1, doors_passenger = -1, doors_backleft = -1, doors_backright = -1,
+	windows_driver = -1, windows_passenger = -1, windows_backleft = -1, windows_backright = -1, siren = -1,
+	numberplate[] = "", carmods[] = { -1 }, Float:streamdistance = STREAMER_VEHICLE_SD, worlds[] = { -1 }, interiors[] = { -1 }, players[] = { -1 },
+	STREAMER_TAG_AREA areas[] = { STREAMER_TAG_AREA - 1 }, priority = 0, maxcarmods = sizeof carmods, maxworlds = sizeof worlds, maxinteriors = sizeof interiors, maxplayers = sizeof players, maxareas = sizeof areas);
+	
 // Natives (Deprecated)
 
 native Streamer_CallbackHook(callback, {Float,_}:...);
@@ -437,4 +529,17 @@ forward OnDynamicActorStreamIn(STREAMER_TAG_ACTOR actorid, forplayerid);
 forward OnDynamicActorStreamOut(STREAMER_TAG_ACTOR actorid, forplayerid);
 forward Streamer_OnItemStreamIn(type, STREAMER_ALL_TAGS id);
 forward Streamer_OnItemStreamOut(type, STREAMER_ALL_TAGS id);
+forward OnDynamicVehicleSpawn(STREAMER_TAG_VEHICLE vehicleid);
+forward OnDynamicVehicleDeath(STREAMER_TAG_VEHICLE vehicleid, killerid);
+forward OnPlayerEnterDynamicVehicle(playerid, STREAMER_TAG_VEHICLE vehicleid, ispassenger);
+forward OnPlayerExitDynamicVehicle(playerid, STREAMER_TAG_VEHICLE vehicleid);
+forward OnDynamicVehicleMod(playerid, STREAMER_TAG_VEHICLE vehicleid, componentid);
+forward OnDynamicVehiclePaintjob(playerid, STREAMER_TAG_VEHICLE vehicleid, paintjobid);
+forward OnDynamicVehicleRespray(playerid, STREAMER_TAG_VEHICLE vehicleid, color1, color2);
+forward OnDynamicVehDamageStatusUpdate(STREAMER_TAG_VEHICLE vehicleid, playerid);
+forward OnUnoccupiedDynamicVehUpdate(STREAMER_TAG_VEHICLE vehicleid, playerid, passenger_seat, Float:new_x, Float:new_y, Float:new_z, Float:vel_x, Float:vel_y, Float:vel_z);
+forward OnDynamicVehicleStreamIn(STREAMER_TAG_VEHICLE vehicleid, forplayerid);
+forward OnDynamicVehicleStreamOut(STREAMER_TAG_VEHICLE vehicleid, forplayerid);
+forward OnDynamicTrailerUpdate(playerid, STREAMER_TAG_VEHICLE vehicleid);
+forward OnDynamicVehSirenStateChange(playerid, STREAMER_TAG_VEHICLE vehicleid, newstate);
 forward Streamer_OnPluginError(error[]);
